@@ -36,8 +36,7 @@ import org.axonframework.serialization.json.JacksonSerializer;
  */
 public class AxonStarter {
     public static void main(String[] args) {
-        AxonHubConfiguration axonhubConfiguration = AxonHubConfiguration.newBuilder("localhost:8024", "AxonStarter",
-                "AxonStarter").build();
+        AxonHubConfiguration axonhubConfiguration = AxonHubConfiguration.newBuilder("localhost:8024", "AxonStarter").build();
         PlatformConnectionManager platformConnectionManager = new PlatformConnectionManager(axonhubConfiguration);
 
         Serializer serializer = new JacksonSerializer();
