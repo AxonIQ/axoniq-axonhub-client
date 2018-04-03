@@ -17,6 +17,7 @@ package io.axoniq.axonhub.example;
 import io.axoniq.axonhub.client.AxonHubConfiguration;
 import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.command.AxonHubCommandBus;
+import io.axoniq.axonhub.client.event.axon.AxonHubEvenProcessorInfoConfiguration;
 import io.axoniq.axonhub.client.event.axon.AxonHubEventStore;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
@@ -25,6 +26,8 @@ import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.commandhandling.distributed.AnnotationRoutingStrategy;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.DefaultConfigurer;
+import org.axonframework.config.EventHandlingConfiguration;
+import org.axonframework.config.ModuleConfiguration;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.queryhandling.SimpleQueryBus;
@@ -35,10 +38,15 @@ import org.axonframework.serialization.json.JacksonSerializer;
  * @author Marc Gathier
  */
 public class AxonStarter {
+
     public static void main(String[] args) {
         AxonHubConfiguration axonhubConfiguration = AxonHubConfiguration.newBuilder("localhost:8024", "AxonStarter").build();
         PlatformConnectionManager platformConnectionManager = new PlatformConnectionManager(axonhubConfiguration);
 
+        ModuleConfiguration moduleConfiguration =
+                new AxonHubEvenProcessorInfoConfiguration(new EventHandlingConfiguration(),
+                                                          platformConnectionManager,
+                                                          axonhubConfiguration);
         Serializer serializer = new JacksonSerializer();
         EventBus axonHubEventStore = new AxonHubEventStore(axonhubConfiguration, platformConnectionManager, serializer);
         CommandBus localSegment = new SimpleCommandBus();
@@ -50,12 +58,13 @@ public class AxonStarter {
                 new QueryPriorityCalculator() {});
 
         Configuration config = DefaultConfigurer.defaultConfiguration()
-                .configureEventBus(c -> axonHubEventStore)
-                .configureCommandBus(c -> axonHubCommandBus)
-                .configureQueryBus(c -> axonHubQueryBus)
-                // more configuration for Axon
-                .configureSerializer(c -> serializer)
-                .buildConfiguration();
+                                                .configureEventBus(c -> axonHubEventStore)
+                                                .configureCommandBus(c -> axonHubCommandBus)
+                                                .configureQueryBus(c -> axonHubQueryBus)
+                                                .registerModule(moduleConfiguration)
+                                                // more configuration for Axon
+                                                .configureSerializer(c -> serializer)
+                                                .buildConfiguration();
 
         config.start();
     }
