@@ -20,6 +20,11 @@ import io.axoniq.axonhub.client.AxonHubConfiguration;
 import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.command.AxonHubCommandBus;
 import io.axoniq.axonhub.client.command.CommandPriorityCalculator;
+import io.axoniq.axonhub.client.event.axon.AxonHubEvenProcessorInfoConfiguration;
+import io.axoniq.axonhub.client.processor.EventProcessorController;
+import io.axoniq.axonhub.client.processor.EventProcessorControlService;
+import io.axoniq.axonhub.client.processor.grpc.GrpcEventProcessorInfoSource;
+import io.axoniq.axonhub.client.processor.schedule.ScheduledEventProcessorInfoSource;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
 import org.axonframework.boot.autoconfig.AxonAutoConfiguration;
@@ -27,6 +32,7 @@ import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.commandhandling.distributed.AnnotationRoutingStrategy;
 import org.axonframework.common.transaction.TransactionManager;
+import org.axonframework.config.EventHandlingConfiguration;
 import org.axonframework.messaging.interceptors.CorrelationDataInterceptor;
 import org.axonframework.queryhandling.LoggingQueryInvocationErrorHandler;
 import org.axonframework.queryhandling.QueryBus;
@@ -115,5 +121,35 @@ public class MessagingAutoConfiguration implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
+
+    @Bean
+    public AxonHubEvenProcessorInfoConfiguration processorInfoConfiguration(EventHandlingConfiguration eventHandlingConfiguration,
+                                                                            PlatformConnectionManager connectionManager,
+                                                                            AxonHubConfiguration configuration){
+        return new AxonHubEvenProcessorInfoConfiguration(eventHandlingConfiguration,connectionManager, configuration);
+    }
+
+//    @Bean
+//    public EventProcessorController eventProcessorController(EventHandlingConfiguration configuration){
+//        return new EventProcessorController(configuration);
+//    }
+
+//    @Bean(initMethod = "init")
+//    public EventProcessorControlService eventProcessorService(PlatformConnectionManager platformConnectionManager,
+//                                                              EventProcessorController eventProcessorController){
+//        return new EventProcessorControlService(platformConnectionManager, eventProcessorController);
+//    }
+//
+//    @Bean(initMethod = "start")
+//    public ScheduledEventProcessorInfoSource eventProcessorInfoSource(
+//            AxonHubConfiguration axonHubConfiguration,
+//            PlatformConnectionManager connectionManager,
+//            EventHandlingConfiguration configuration){
+//        GrpcEventProcessorInfoSource grpcSource = new GrpcEventProcessorInfoSource(configuration, connectionManager);
+//        return new ScheduledEventProcessorInfoSource(
+//                axonHubConfiguration.getProcessorsNotificationInitialDelay(),
+//                axonHubConfiguration.getProcessorsNotificationRate(),
+//                grpcSource);
+//    }
 }
 

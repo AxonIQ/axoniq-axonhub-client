@@ -14,6 +14,7 @@ service PlatformService {
 message PlatformInboundInstruction {
     oneof request {
         ClientIdentification register = 1;
+        EventProcessorInfo event_processor_info = 2;
     }
 }
 
@@ -21,14 +22,12 @@ message PlatformOutboundInstruction {
     oneof request {
         NodeInfo node_notification = 1;
         RequestReconnect request_reconnect = 3;
-        RequestReleaseTracker request_release_tracker = 4;
+        PauseEventProcessor pause_event_processor = 4;
+        StartEventProcessor start_event_processor = 5;
     }
 }
 
 message RequestReconnect {
-}
-
-message RequestReleaseTracker {
 }
 
 message PlatformInfo {
@@ -46,5 +45,29 @@ message NodeInfo {
 message ClientIdentification {
     string client_name = 1;
     string component_name = 2;
+}
+
+message EventProcessorInfo {
+    message EventTrackerInfo {
+        int32 segment_id = 1;
+        bool caught_up = 2;
+        bool replaying = 3;
+        int32 one_part_of = 4;
+    }
+
+    string processor_name = 1;
+    string mode = 2;
+    int32 activeThreads = 3;
+    bool running = 4;
+    bool error = 5;
+    repeated EventTrackerInfo event_trackers_info = 6;
+}
+
+message PauseEventProcessor {
+    string processor_name = 1;
+}
+
+message StartEventProcessor {
+    string processor_name = 1;
 }
 
