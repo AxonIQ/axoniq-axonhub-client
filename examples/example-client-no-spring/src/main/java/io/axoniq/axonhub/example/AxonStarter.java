@@ -17,11 +17,9 @@ package io.axoniq.axonhub.example;
 import io.axoniq.axonhub.client.AxonHubConfiguration;
 import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.command.AxonHubCommandBus;
-import io.axoniq.axonhub.client.command.EnhancedCommandBus;
 import io.axoniq.axonhub.client.event.axon.AxonHubEvenProcessorInfoConfiguration;
 import io.axoniq.axonhub.client.event.axon.AxonHubEventStore;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
-import io.axoniq.axonhub.client.query.EnhancedQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.SimpleCommandBus;
@@ -51,11 +49,11 @@ public class AxonStarter {
                                                           axonhubConfiguration);
         Serializer serializer = new JacksonSerializer();
         EventBus axonHubEventStore = new AxonHubEventStore(axonhubConfiguration, platformConnectionManager, serializer);
-        EnhancedCommandBus localSegment = new EnhancedCommandBus();
+        SimpleCommandBus localSegment = new SimpleCommandBus();
         CommandBus axonHubCommandBus = new AxonHubCommandBus(platformConnectionManager, axonhubConfiguration, localSegment, serializer,
                 new AnnotationRoutingStrategy());
 
-        EnhancedQueryBus localQueryBus = new EnhancedQueryBus();
+        SimpleQueryBus localQueryBus = new SimpleQueryBus();
         QueryBus axonHubQueryBus = new AxonHubQueryBus(platformConnectionManager, axonhubConfiguration, localQueryBus, serializer,
                 new QueryPriorityCalculator() {});
 
