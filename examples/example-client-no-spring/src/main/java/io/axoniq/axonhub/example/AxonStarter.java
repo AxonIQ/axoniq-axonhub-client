@@ -24,7 +24,6 @@ import io.axoniq.axonhub.client.query.AxonHubQueryBus;
 import io.axoniq.axonhub.client.query.EnhancedQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
 import org.axonframework.commandhandling.CommandBus;
-import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.commandhandling.distributed.AnnotationRoutingStrategy;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.DefaultConfigurer;
@@ -32,7 +31,6 @@ import org.axonframework.config.EventHandlingConfiguration;
 import org.axonframework.config.ModuleConfiguration;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.queryhandling.QueryBus;
-import org.axonframework.queryhandling.SimpleQueryBus;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.json.JacksonSerializer;
 
@@ -56,8 +54,8 @@ public class AxonStarter {
                 new AnnotationRoutingStrategy());
 
         EnhancedQueryBus localQueryBus = new EnhancedQueryBus();
-        QueryBus axonHubQueryBus = new AxonHubQueryBus(platformConnectionManager, axonhubConfiguration, localQueryBus, serializer,
-                new QueryPriorityCalculator() {});
+        QueryBus axonHubQueryBus = new AxonHubQueryBus(platformConnectionManager, axonhubConfiguration, localQueryBus,
+                                                       serializer, serializer, new QueryPriorityCalculator() {});
 
         Configuration config = DefaultConfigurer.defaultConfiguration()
                                                 .configureEventBus(c -> axonHubEventStore)

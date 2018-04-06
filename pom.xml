@@ -262,7 +262,7 @@
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
-                        <phase>deploy</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
