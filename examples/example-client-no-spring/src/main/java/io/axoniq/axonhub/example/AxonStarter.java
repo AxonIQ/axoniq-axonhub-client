@@ -54,8 +54,8 @@ public class AxonStarter {
                 new AnnotationRoutingStrategy());
 
         SimpleQueryBus localQueryBus = new SimpleQueryBus();
-        QueryBus axonHubQueryBus = new AxonHubQueryBus(platformConnectionManager, axonhubConfiguration, localQueryBus, serializer,
-                new QueryPriorityCalculator() {});
+        QueryBus axonHubQueryBus = new AxonHubQueryBus(platformConnectionManager, axonhubConfiguration, localQueryBus,
+                                                       serializer, serializer, new QueryPriorityCalculator() {});
 
         Configuration config = DefaultConfigurer.defaultConfiguration()
                                                 .configureEventBus(c -> axonHubEventStore)
