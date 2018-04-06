@@ -20,13 +20,16 @@ import io.axoniq.axonhub.client.AxonHubConfiguration;
 import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.command.AxonHubCommandBus;
 import io.axoniq.axonhub.client.command.CommandPriorityCalculator;
-import io.axoniq.axonhub.client.command.EnhancedCommandBus;
 import io.axoniq.axonhub.client.event.axon.AxonHubEvenProcessorInfoConfiguration;
+import io.axoniq.axonhub.client.processor.EventProcessorController;
+import io.axoniq.axonhub.client.processor.EventProcessorControlService;
+import io.axoniq.axonhub.client.processor.grpc.GrpcEventProcessorInfoSource;
+import io.axoniq.axonhub.client.processor.schedule.ScheduledEventProcessorInfoSource;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
-import io.axoniq.axonhub.client.query.EnhancedQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
 import org.axonframework.boot.autoconfig.AxonAutoConfiguration;
 import org.axonframework.commandhandling.CommandBus;
+import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.commandhandling.distributed.AnnotationRoutingStrategy;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.EventHandlingConfiguration;
@@ -34,6 +37,8 @@ import org.axonframework.messaging.interceptors.CorrelationDataInterceptor;
 import org.axonframework.queryhandling.LoggingQueryInvocationErrorHandler;
 import org.axonframework.queryhandling.QueryBus;
 import org.axonframework.queryhandling.QueryInvocationErrorHandler;
+import org.axonframework.queryhandling.SimpleQueryBus;
+import org.axonframework.queryhandling.SimpleQueryBus;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.spring.config.AxonConfiguration;
 import org.springframework.beans.BeansException;
@@ -79,7 +84,7 @@ public class MessagingAutoConfiguration implements ApplicationContextAware {
     public AxonHubCommandBus commandBus(TransactionManager txManager, AxonConfiguration axonConfiguration , AxonHubConfiguration axonHubConfiguration,
                                  Serializer serializer, PlatformConnectionManager platformConnectionManager, CommandPriorityCalculator priorityCalculator) {
 
-        EnhancedCommandBus commandBus = new EnhancedCommandBus(txManager, axonConfiguration.messageMonitor(CommandBus.class, "commandBus"));
+        SimpleCommandBus commandBus = new SimpleCommandBus(txManager, axonConfiguration.messageMonitor(CommandBus.class, "commandBus"));
         commandBus.registerHandlerInterceptor(new CorrelationDataInterceptor<>(axonConfiguration.correlationDataProviders()));
 
         return new AxonHubCommandBus(platformConnectionManager, axonHubConfiguration, commandBus, serializer, new AnnotationRoutingStrategy(),
@@ -112,8 +117,8 @@ public class MessagingAutoConfiguration implements ApplicationContextAware {
                                     Serializer genericSerializer,
                              QueryPriorityCalculator priorityCalculator, QueryInvocationErrorHandler queryInvocationErrorHandler) {
         return new AxonHubQueryBus(platformConnectionManager, axonHubConfiguration,
-                new EnhancedQueryBus(axonConfiguration.messageMonitor(QueryBus.class, "queryBus"), txManager, queryInvocationErrorHandler),
-                messageSerializer, genericSerializer, priorityCalculator);
+                new SimpleQueryBus(axonConfiguration.messageMonitor(QueryBus.class, "queryBus"), txManager, queryInvocationErrorHandler),
+                                   messageSerializer, genericSerializer, priorityCalculator);
     }
 
     @Override
