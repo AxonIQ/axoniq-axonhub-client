@@ -75,6 +75,8 @@
         <module>axonhub-grpc-proto</module>
         <module>axonhub-spring-boot-autoconfigure</module>
         <module>examples/example-client-no-spring</module>
+        <module>integrationtest-springboot-axon31</module>
+        <module>integrationtest-springboot-axon32</module>
     </modules>
 
     <dependencyManagement>
