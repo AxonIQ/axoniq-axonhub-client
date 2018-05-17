@@ -11,16 +11,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 
-//@SpringBootTest
-//@RunWith(SpringRunner.class)
+@SpringBootTest
+@RunWith(SpringRunner.class)
 public class ExampleApplicationTest {
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    //TODO retro compatibility
-   /* @Test
-    public void testApplicationStartsWithAxon31() {
+    @Test
+    public void testApplicationStartsWithAxon32() {
         assertEquals(AxonHubQueryBus.class, applicationContext.getBean(QueryBus.class).getClass());
-    } */
+    }
 }

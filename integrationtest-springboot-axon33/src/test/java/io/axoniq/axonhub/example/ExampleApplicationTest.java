@@ -1,7 +1,7 @@
 package io.axoniq.axonhub.example;
 
+import io.axoniq.axonhub.client.query.EnhancedAxonHubQueryBus;
 import org.axonframework.queryhandling.QueryBus;
-import org.axonframework.queryhandling.SimpleQueryBus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class ExampleApplicationTest {
     private ApplicationContext applicationContext;
 
     @Test
-    public void testApplicationStartsWithAxon31() {
-        assertEquals(SimpleQueryBus.class, applicationContext.getBean(QueryBus.class).getClass());
+    public void testApplicationStartsWithAxon33() {
+        assertEquals(EnhancedAxonHubQueryBus.class, applicationContext.getBean(QueryBus.class).getClass());
     }
 }
