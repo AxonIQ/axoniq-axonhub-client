@@ -1,6 +1,6 @@
 package io.axoniq.axonhub.example;
 
-import io.axoniq.axonhub.client.query.EnhancedAxonHubQueryBus;
+import io.axoniq.axonhub.client.query.subscription.EnhancedAxonHubQueryBus;
 import org.axonframework.queryhandling.QueryBus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
