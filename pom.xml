@@ -66,8 +66,8 @@
             - We use (in our default client artifact) a statically-linked version of Netty TcNative. This contains
               native libraries for BoringSSL (Google fork of OpenSSL).
         -->
-        <grpc.version>1.7.1</grpc.version>
-        <netty.tcnative.version>2.0.6.Final</netty.tcnative.version>
+        <grpc.version>1.12.0</grpc.version>
+        <netty.tcnative.version>2.0.7.Final</netty.tcnative.version>
     </properties>
 
     <modules>
@@ -153,10 +153,6 @@
                         <groupId>com.google.code.findbugs</groupId>
                         <artifactId>jsr305</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -196,6 +192,11 @@
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>3.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>2.3.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

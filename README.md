@@ -10,6 +10,16 @@ communicate using AxonHub
 
 ## Version history
 
-1. 1.0-beta1: Initial beta version
-2. 1.0-beta2: Prioritization of commands and queries
-3. 1.0-beta3: Simplified configuration
+### 1.0
+
+First release
+### 1.0.1
+
+Fix for Null handling of query result
+
+### 1.0.3
+ 
+- Keep Alive between client and server
+- improved handling of exceptions from query handler
+- updated GRPC and Netty versions
+- Improved support for configuration properties in IDE when using spring-boot
