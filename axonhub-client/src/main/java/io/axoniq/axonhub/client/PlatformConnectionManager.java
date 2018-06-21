@@ -93,12 +93,18 @@ public class PlatformConnectionManager {
                         channel = candidate;
                     } else {
                         shutdown(candidate);
-                        logger.info("Connecting to {} ({}:{})", clusterInfo.getPrimary().getNodeName(), clusterInfo.getPrimary().getHostName(), clusterInfo.getPrimary().getGrpcPort());
+                        logger.info("Connecting to {} ({}:{})", clusterInfo.getPrimary().getNodeName(),
+                                    clusterInfo.getPrimary().getHostName(),
+                                    clusterInfo.getPrimary().getGrpcPort());
                         channel = createChannel(clusterInfo.getPrimary().getHostName(), clusterInfo.getPrimary().getGrpcPort());
-                                ManagedChannelBuilder.forAddress(clusterInfo.getPrimary().getHostName(), clusterInfo.getPrimary().getGrpcPort()).usePlaintext(true).build();
+                                ManagedChannelBuilder.forAddress(clusterInfo.getPrimary().getHostName(), clusterInfo.getPrimary().getGrpcPort())
+                                                     .usePlaintext()
+                                                     .build();
                     }
                     startInstructionStream(clusterInfo.getPrimary().getNodeName());
                     unavailable = false;
+                    logger.info("Re-subscribing commands and queries");
+                    reconnectListeners.forEach(Runnable::run);
                     break;
                 } catch( StatusRuntimeException sre) {
                     shutdown(candidate);
@@ -151,7 +157,7 @@ public class PlatformConnectionManager {
                 throw new RuntimeException("Couldn't set up SSL context", e);
             }
         } else {
-            builder.usePlaintext(true);
+            builder.usePlaintext();
         }
         return builder.build();
     }
@@ -210,9 +216,7 @@ public class PlatformConnectionManager {
         try {
             reconnectTask = null;
             getChannel();
-            reconnectListeners.forEach(Runnable::run);
         } catch (Exception ignored) {
-
         }
     }
 
@@ -224,7 +228,7 @@ public class PlatformConnectionManager {
         disconnectListeners.add(action);
     }
 
-    public synchronized void scheduleReconnect() {
+    private synchronized void scheduleReconnect() {
         if( reconnectTask == null || reconnectTask.isDone()) {
             if( channel != null) {
                 try {
@@ -258,4 +262,5 @@ public class PlatformConnectionManager {
     public void send(PlatformInboundInstruction instruction){
         inputStream.onNext(instruction);
     }
+
 }
