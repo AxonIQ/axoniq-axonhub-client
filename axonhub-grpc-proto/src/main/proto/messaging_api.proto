@@ -12,6 +12,7 @@ service CommandService {
 service QueryService {
     rpc OpenStream (stream QueryProviderOutbound) returns (stream QueryProviderInbound) {}
     rpc Query (QueryRequest) returns (stream QueryResponse) {}
+    rpc Subscription (stream SubscriptionQueryRequest) returns (stream SubscriptionQueryResponse){}
 }
 
 message CommandProviderOutbound {
@@ -30,6 +31,7 @@ message QueryProviderOutbound {
         FlowControl flowControl = 3;
         QueryResponse queryResponse = 4;
         QueryComplete queryComplete = 5;
+        SubscriptionQueryResponse subscription_query_response = 6;
     }
 }
 
@@ -44,6 +46,7 @@ message QueryProviderInbound {
     oneof request {
         Confirmation confirmation = 1;
         QueryRequest query = 2;
+        SubscriptionQueryRequest subscription_query_request = 3;
     }
 }
 
