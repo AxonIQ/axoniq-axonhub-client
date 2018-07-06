@@ -1,6 +1,8 @@
 package io.axoniq.axonhub.example;
 
+import io.axoniq.axonhub.client.event.axon.AxonHubEventStore;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
+import org.axonframework.eventhandling.EventBus;
 import org.axonframework.queryhandling.QueryBus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,5 +23,6 @@ public class ExampleApplicationTest {
     @Test
     public void testApplicationStartsWithAxon32() {
         assertEquals(AxonHubQueryBus.class, applicationContext.getBean(QueryBus.class).getClass());
+        assertEquals(AxonHubEventStore.class, applicationContext.getBean(EventBus.class).getClass());
     }
 }
