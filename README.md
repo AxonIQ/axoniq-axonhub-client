@@ -23,3 +23,8 @@ Fix for Null handling of query result
 - improved handling of exceptions from query handler
 - updated GRPC and Netty versions
 - Improved support for configuration properties in IDE when using spring-boot
+
+### 1.1
+
+- AxonFramework 3.3 support
+- Subscription queries
