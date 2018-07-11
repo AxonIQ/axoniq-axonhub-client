@@ -17,7 +17,7 @@ package io.axoniq.axonhub.example;
 import io.axoniq.axonhub.client.AxonHubConfiguration;
 import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.command.AxonHubCommandBus;
-import io.axoniq.axonhub.client.event.axon.AxonHubEvenProcessorInfoConfiguration;
+import io.axoniq.axonhub.client.event.axon.AxonHubEventProcessorInfoConfiguration;
 import io.axoniq.axonhub.client.event.axon.AxonHubEventStore;
 import io.axoniq.axonhub.client.query.AxonHubQueryBus;
 import io.axoniq.axonhub.client.query.QueryPriorityCalculator;
@@ -44,9 +44,9 @@ public class AxonStarter {
         PlatformConnectionManager platformConnectionManager = new PlatformConnectionManager(axonhubConfiguration);
 
         ModuleConfiguration moduleConfiguration =
-                new AxonHubEvenProcessorInfoConfiguration(new EventHandlingConfiguration(),
-                                                          platformConnectionManager,
-                                                          axonhubConfiguration);
+                new AxonHubEventProcessorInfoConfiguration(new EventHandlingConfiguration(),
+                                                           platformConnectionManager,
+                                                           axonhubConfiguration);
         Serializer serializer = new JacksonSerializer();
         EventBus axonHubEventStore = new AxonHubEventStore(axonhubConfiguration, platformConnectionManager, serializer);
         SimpleCommandBus localSegment = new SimpleCommandBus();
