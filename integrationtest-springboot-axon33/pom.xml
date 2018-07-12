@@ -9,7 +9,7 @@
 
     <groupId>io.axoniq</groupId>
     <artifactId>integrationtest-springboot-axon33</artifactId>
-    <version>1.1</version>
+    <version>1.2-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -49,8 +49,4 @@
             </plugin>
         </plugins>
     </build>
-
-  <scm>
-    <tag>axonhub-client-parent-1.1a</tag>
-  </scm>
 </project>
