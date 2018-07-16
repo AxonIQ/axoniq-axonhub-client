@@ -28,3 +28,9 @@ Fix for Null handling of query result
 
 - AxonFramework 3.3 support
 - Subscription queries
+
+### 1.1.1
+
+- Fix for missing upcaster
+- Resolved high memory consumption in EventBuffer when event stream was closed by client
+- Performance improvement in readEvents
