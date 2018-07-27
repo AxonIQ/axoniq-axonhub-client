@@ -44,7 +44,6 @@ import org.axonframework.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -52,8 +51,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-
-import static io.axoniq.axonhub.client.util.ProcessingInstructionHelper.priority;
 
 
 /**
@@ -180,7 +177,7 @@ public class AxonHubCommandBus implements CommandBus {
 
     protected class CommandRouterSubscriber {
         private final CopyOnWriteArraySet<String> subscribedCommands = new CopyOnWriteArraySet<>();
-        private final PriorityBlockingQueue<Command> commandQueue;
+        private final PriorityBlockingQueue<CommandWithPriority> commandQueue;
         private final ExecutorService executor = Executors.newFixedThreadPool(configuration.getCommandThreads());
         private volatile boolean subscribing;
 
@@ -190,7 +187,7 @@ public class AxonHubCommandBus implements CommandBus {
         CommandRouterSubscriber() {
             platformConnectionManager.addReconnectListener(this::resubscribe);
             platformConnectionManager.addDisconnectListener(this::unsubscribeAll);
-            commandQueue = new PriorityBlockingQueue<>(1000, Comparator.comparingLong(c -> -priority(c.getProcessingInstructionsList())));
+            commandQueue = new PriorityBlockingQueue<>(1000);
             IntStream.range(0, configuration.getCommandThreads()).forEach( i -> executor.submit(this::commandExecutor));
         }
 
@@ -198,10 +195,10 @@ public class AxonHubCommandBus implements CommandBus {
             logger.debug("Starting command Executor");
             while(true) {
                 try {
-                    Command command = commandQueue.poll(10, TimeUnit.SECONDS);
+                    CommandWithPriority command = commandQueue.poll(10, TimeUnit.SECONDS);
                     if( command != null) {
-                        logger.debug("Received command: {}", command);
-                        processCommand(command);
+                        logger.debug("Received command: {}", command.getCommand());
+                        processCommand(command.getCommand());
                     }
                 } catch (InterruptedException e) {
                     logger.warn("Interrupted queryExecutor", e);
@@ -277,7 +274,7 @@ public class AxonHubCommandBus implements CommandBus {
                         logger.debug("Received from server: {}", commandToSubscriber);
                         switch (commandToSubscriber.getRequestCase()) {
                             case COMMAND:
-                                commandQueue.add(commandToSubscriber.getCommand());
+                                commandQueue.add(new CommandWithPriority(commandToSubscriber.getCommand()));
                                 break;
                         }
                     }
