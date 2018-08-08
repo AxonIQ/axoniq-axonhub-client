@@ -17,45 +17,24 @@ package io.axoniq.axonhub.client;
 
 import io.axoniq.axonhub.client.util.ContextAddingInterceptor;
 import io.axoniq.axonhub.client.util.TokenAddingInterceptor;
-import io.axoniq.axonhub.grpc.CommandProviderInbound;
-import io.axoniq.axonhub.grpc.CommandProviderOutbound;
-import io.axoniq.axonhub.grpc.CommandServiceGrpc;
-import io.axoniq.axonhub.grpc.QueryProviderInbound;
-import io.axoniq.axonhub.grpc.QueryProviderOutbound;
-import io.axoniq.axonhub.grpc.QueryServiceGrpc;
-import io.axoniq.platform.grpc.ClientIdentification;
-import io.axoniq.platform.grpc.NodeInfo;
-import io.axoniq.platform.grpc.PlatformInboundInstruction;
-import io.axoniq.platform.grpc.PlatformInfo;
-import io.axoniq.platform.grpc.PlatformOutboundInstruction;
-import io.axoniq.platform.grpc.PlatformServiceGrpc;
-import io.grpc.Channel;
-import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
+import io.axoniq.axonhub.grpc.*;
+import io.axoniq.platform.grpc.*;
+import io.grpc.*;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.net.ssl.SSLException;
 
 /**
  * @author Marc Gathier
@@ -143,16 +122,18 @@ public class PlatformConnectionManager {
         }
         if (connectInformation.isSslEnabled()) {
             try {
-                if( connectInformation.getCertFile() == null) throw new RuntimeException("SSL enabled but no certificate file specified");
-                File certFile = new File(connectInformation.getCertFile());
-                if( ! certFile.exists()) {
-                    throw new RuntimeException("Certificate file " + connectInformation.getCertFile() + " does not exist");
+                SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
+                if( connectInformation.getCertFile() != null) {
+                    File certFile = new File(connectInformation.getCertFile());
+                    if (!certFile.exists()) {
+                        throw new RuntimeException("Certificate file " + connectInformation.getCertFile() + " does not exist");
+                    }
+                    sslContextBuilder.trustManager(certFile);
+                } else {
+                    sslContextBuilder.trustManager(TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()));
                 }
-                SslContext sslContext = GrpcSslContexts.forClient()
-                        .trustManager(new File(connectInformation.getCertFile()))
-                        .build();
-                builder.sslContext(sslContext);
-            } catch (SSLException e) {
+                builder.sslContext(sslContextBuilder.build());
+            } catch (SSLException | NoSuchAlgorithmException e) {
                 throw new RuntimeException("Couldn't set up SSL context", e);
             }
         } else {
