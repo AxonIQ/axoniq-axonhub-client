@@ -19,7 +19,7 @@
 
     <groupId>io.axoniq</groupId>
     <artifactId>axonhub-client-parent</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2-TRACKING_BALANCE-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
