@@ -253,15 +253,21 @@ public class AxonHubEventStore extends AbstractEventStore {
             Assert.isTrue(trackingToken == null || trackingToken instanceof GlobalSequenceTrackingToken,
                           () -> "Invalid tracking token type. Must be GlobalSequenceTrackingToken.");
             long nextToken = trackingToken == null ? 0 : ((GlobalSequenceTrackingToken) trackingToken).getGlobalIndex() + 1;
-            EventBuffer consumer = new EventBuffer(upcasterChain, getEventSerializer());
+            EventBuffer consumer = new EventBuffer(upcasterChain, getEventSerializer(), configuration.getHeartbeatInterval());
 
             logger.info("open stream: {}", nextToken);
 
             StreamObserver<GetEventsRequest> requestStream = eventStoreClient.listEvents(new StreamObserver<EventWithToken>() {
                 @Override
                 public void onNext(EventWithToken eventWithToken) {
-                    logger.debug("Received event with token: {}", eventWithToken.getToken());
-                    consumer.push(eventWithToken);
+                    if (Event.getDefaultInstance().equals(eventWithToken.getEvent())) {
+                        // this is a hearbeat
+                        logger.debug("Heartbeat received...");
+                        consumer.touch();
+                    } else {
+                        logger.debug("Received event with token: {}", eventWithToken.getToken());
+                        consumer.push(eventWithToken);
+                    }
                 }
 
                 @Override
@@ -281,6 +287,7 @@ public class AxonHubEventStore extends AbstractEventStore {
                                                        .setTrackingToken(nextToken)
                                                         .setClient(configuration.getClientName())
                                                         .setComponent(configuration.getComponentName())
+                                                       .setHeartbeatInterval(configuration.getHeartbeatInterval())
                                                        .setNumberOfPermits(configuration.getInitialNrOfPermits())
                                                        .build();
             observer.onNext(request);

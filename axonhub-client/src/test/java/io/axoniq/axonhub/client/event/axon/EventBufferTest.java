@@ -57,7 +57,7 @@ public class EventBufferTest {
 
     @Test
     public void testDataUpcastAndDeserialized() throws InterruptedException {
-        testSubject = new EventBuffer(stubUpcaster, serializer);
+        testSubject = new EventBuffer(stubUpcaster, serializer, 0);
 
         assertFalse(testSubject.hasNextAvailable());
         testSubject.push(createEventData(1L));
@@ -79,7 +79,7 @@ public class EventBufferTest {
     @Test
     public void testConsumptionIsRecorded() {
         stubUpcaster = stream -> stream.filter(i -> false);
-        testSubject = new EventBuffer(stubUpcaster, serializer);
+        testSubject = new EventBuffer(stubUpcaster, serializer,0);
 
         testSubject.push(createEventData(1));
         testSubject.push(createEventData(2));

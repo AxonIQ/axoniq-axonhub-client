@@ -109,6 +109,11 @@ public class AxonHubConfiguration {
      * Interval (in ms) for keep alive requests, 0 is keep-alive disabled
      */
     private long keepAliveTime = 0;
+    /**
+     * Interval at which the server is requested to send a heartbeat on open event streams, when no
+     * events are sent.
+     */
+    private int heartbeatInterval = 60000;
 
     public AxonHubConfiguration() {
     }
@@ -272,6 +277,14 @@ public class AxonHubConfiguration {
         this.keepAliveTime = keepAliveTime;
     }
 
+    public int getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    public void setHeartbeatInterval(int heartbeatInterval) {
+        this.heartbeatInterval = heartbeatInterval;
+    }
+
     @SuppressWarnings("unused")
     public static class Builder {
         private AxonHubConfiguration instance;
@@ -312,6 +325,11 @@ public class AxonHubConfiguration {
 
         public Builder eventCipher(EventCipher eventCipher) {
             instance.eventCipher = eventCipher;
+            return this;
+        }
+
+        public Builder heartbeatInterval(int heartbeatInterval) {
+            instance.setHeartbeatInterval(heartbeatInterval);
             return this;
         }
 
