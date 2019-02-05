@@ -37,6 +37,7 @@ import io.grpc.ClientInterceptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.netty.util.internal.OutOfDirectMemoryError;
 import org.axonframework.common.Registration;
 import org.axonframework.messaging.MessageDispatchInterceptor;
 import org.axonframework.messaging.MessageHandler;
@@ -146,7 +147,14 @@ public class AxonHubQueryBus implements QueryBus {
 
                                    @Override
                                    public void onError(Throwable throwable) {
-                                       logger.warn("Received error while waiting for first response: {}", throwable.getMessage(), throwable);
+                                       if( logger.isDebugEnabled()) {
+                                           logger.warn("Received error while waiting for first response: {}",
+                                                       throwable.getMessage(),
+                                                       throwable);
+                                       } else {
+                                           logger.warn("Received error while waiting for first response: {}",
+                                                       throwable.getMessage());
+                                       }
                                        completableFuture.completeExceptionally(throwable);
                                    }
 
@@ -232,16 +240,23 @@ public class AxonHubQueryBus implements QueryBus {
 
         private void queryExecutor() {
             logger.debug("Starting Query Executor");
-            while (true) {
+            boolean running = true;
+            QueryRequest query = null;
+            while (running) {
                 try {
-                    QueryRequest query = queryQueue.poll(10, TimeUnit.SECONDS);
+                    query = queryQueue.poll(10, TimeUnit.SECONDS);
                     if (query != null) {
-                        logger.debug("Received query: {}", query);
-                        processQuery(query);
+                        try {
+                            logger.debug("Received query: {}", query);
+                            processQuery(query);
+                        } catch (RuntimeException | OutOfDirectMemoryError e) {
+                            logger.warn("queryExecutor exception on: ", query, e);
+                        }
                     }
                 } catch (InterruptedException e) {
                     logger.warn("Interrupted queryExecutor", e);
-                    return;
+                    Thread.currentThread().interrupt();
+                    running = false;
                 }
             }
 
@@ -270,16 +285,29 @@ public class AxonHubQueryBus implements QueryBus {
                 outboundStreamObserver.onNext(QueryProviderOutbound.newBuilder().setQueryComplete(
                         QueryComplete.newBuilder().setMessageId(UUID.randomUUID().toString()).setRequestId(requestId)).build());
             } catch (Exception ex) {
-                logger.warn("Received error from localSegment: {}", ex.getMessage(), ex);
-                outboundStreamObserver.onNext(QueryProviderOutbound.newBuilder()
-                                                                   .setQueryResponse(QueryResponse.newBuilder()
-                                                                                                  .setMessageIdentifier(UUID.randomUUID().toString())
-                                                                                                  .setRequestIdentifier(requestId)
-                                                                                                  .setMessage(ExceptionSerializer
-                                                                                                                 .serialize(configuration.getClientName(), ex))
-                                                                                                    .setErrorCode(ErrorCode.resolve(ex).errorCode())
-                                                                                                    .build())
-                                                                   .build());
+                if( outboundStreamObserver != null) {
+                    logger.warn("Received error from localSegment: {}", ex.getMessage(), ex);
+                    outboundStreamObserver.onNext(QueryProviderOutbound.newBuilder()
+                                                                       .setQueryResponse(QueryResponse.newBuilder()
+                                                                                                      .setMessageIdentifier(
+                                                                                                              UUID.randomUUID()
+                                                                                                                  .toString())
+                                                                                                      .setRequestIdentifier(
+                                                                                                              requestId)
+                                                                                                      .setMessage(
+                                                                                                              ExceptionSerializer
+                                                                                                                      .serialize(
+                                                                                                                              configuration
+                                                                                                                                      .getClientName(),
+                                                                                                                              ex))
+                                                                                                      .setErrorCode(
+                                                                                                              ErrorCode
+                                                                                                                      .resolve(
+                                                                                                                              ex)
+                                                                                                                      .errorCode())
+                                                                                                      .build())
+                                                                       .build());
+                }
             }
         }
 
