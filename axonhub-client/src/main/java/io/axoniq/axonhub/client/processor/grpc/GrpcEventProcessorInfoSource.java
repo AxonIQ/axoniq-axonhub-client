@@ -21,6 +21,8 @@ import org.axonframework.config.EventHandlingConfiguration;
 import org.axonframework.eventhandling.EventProcessor;
 import org.axonframework.eventhandling.SubscribingEventProcessor;
 import org.axonframework.eventhandling.TrackingEventProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -29,7 +31,7 @@ import java.util.List;
  * sara.pellegrini@gmail.com
  */
 public class GrpcEventProcessorInfoSource implements AxonHubEventProcessorInfoSource {
-
+    private static final Logger logger = LoggerFactory.getLogger(GrpcEventProcessorInfoSource.class);
     private final EventHandlingConfiguration eventHandlingConfiguration;
 
     private final PlatformConnectionManager platformConnectionManager;
@@ -42,11 +44,15 @@ public class GrpcEventProcessorInfoSource implements AxonHubEventProcessorInfoSo
 
     @Override
     public void notifyInformation() {
-        List<EventProcessor> processors = eventHandlingConfiguration.getProcessors();
-        processors.forEach(processor -> {
-            PlatformInboundMessage message = messageFor(processor);
-            platformConnectionManager.send(message.instruction());
-        });
+        try {
+            List<EventProcessor> processors = eventHandlingConfiguration.getProcessors();
+            processors.forEach(processor -> {
+                PlatformInboundMessage message = messageFor(processor);
+                platformConnectionManager.send(message.instruction());
+            });
+        } catch (Exception | OutOfMemoryError ex) {
+            logger.warn("Sending processor status failed: {}", ex.getMessage());
+        }
     }
 
     private PlatformInboundMessage messageFor(EventProcessor processor){
