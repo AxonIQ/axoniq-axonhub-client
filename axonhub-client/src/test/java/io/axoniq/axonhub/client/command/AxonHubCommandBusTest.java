@@ -37,9 +37,11 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.axoniq.axonhub.client.common.AssertUtils.assertWithin;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -127,11 +129,11 @@ public class AxonHubCommandBusTest {
     @Test
     public void subscribe() throws Exception {
         Registration registration = testSubject.subscribe(String.class.getName(), c -> "Done");
-        Thread.sleep(30);
-        assertEquals(1, dummyMessagePlatformServer.subscriptions(String.class.getName()).size());
+        assertWithin(100, TimeUnit.MILLISECONDS, () ->
+                assertNotNull(dummyMessagePlatformServer.subscriptions(String.class.getName())));
         registration.cancel();
-        Thread.sleep(30);
-        assertEquals(0, dummyMessagePlatformServer.subscriptions(String.class.getName()).size());
+        assertWithin(100, TimeUnit.MILLISECONDS, () ->
+                assertNull(dummyMessagePlatformServer.subscriptions(String.class.getName())));
     }
 
     @Test
@@ -175,13 +177,13 @@ public class AxonHubCommandBusTest {
     @Test
     public void resubscribe() throws Exception {
         testSubject.subscribe(String.class.getName(), c -> "Done");
-        Thread.sleep(30);
-        assertEquals(1, dummyMessagePlatformServer.subscriptions(String.class.getName()).size());
+        assertWithin(1, TimeUnit.SECONDS, () ->
+                assertNotNull(dummyMessagePlatformServer.subscriptions(String.class.getName())));
         dummyMessagePlatformServer.stop();
         assertNull(dummyMessagePlatformServer.subscriptions(String.class.getName()));
         dummyMessagePlatformServer.start();
-        Thread.sleep(3000);
-        assertEquals(1, dummyMessagePlatformServer.subscriptions(String.class.getName()).size());
+        assertWithin(5, TimeUnit.SECONDS, () ->
+                assertNotNull(dummyMessagePlatformServer.subscriptions(String.class.getName())));
     }
 
     @Test

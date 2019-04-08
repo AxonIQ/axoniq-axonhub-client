@@ -40,7 +40,7 @@ import java.util.Set;
 public class DummyMessagePlatformServer {
     private final int port;
     private Server server;
-    private Map<String, Set<StreamObserver>> subscriptions = new HashMap<>();
+    private Map<String, StreamObserver> subscriptions = new HashMap<>();
 
     public DummyMessagePlatformServer(int port) {
         this.port = port;
@@ -62,7 +62,7 @@ public class DummyMessagePlatformServer {
         }
     }
 
-    public Set subscriptions(String query) {
+    public StreamObserver subscriptions(String query) {
         return subscriptions.get(query);
     }
 
@@ -75,17 +75,12 @@ public class DummyMessagePlatformServer {
                 public void onNext(CommandProviderOutbound queryProviderOutbound) {
                     switch(queryProviderOutbound.getRequestCase()) {
                         case SUBSCRIBE:
-                            subscriptions.computeIfAbsent(queryProviderOutbound.getSubscribe().getCommand(), k -> new HashSet<>()).add(responseObserver);
+                            subscriptions.put(queryProviderOutbound.getSubscribe().getCommand(), responseObserver);
                             break;
                         case UNSUBSCRIBE:
-                            Set<StreamObserver> connected = subscriptions.get(queryProviderOutbound.getUnsubscribe().getCommand());
-                            if( connected != null) connected.remove(responseObserver);
+                            subscriptions.remove(queryProviderOutbound.getUnsubscribe().getCommand(), responseObserver);
                             break;
-                        case FLOWCONTROL:
-                            break;
-                        case COMMANDRESPONSE:
-                            break;
-                        case REQUEST_NOT_SET:
+                        default:
                             break;
                     }
                 }

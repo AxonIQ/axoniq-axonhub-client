@@ -25,6 +25,7 @@ import io.axoniq.axonhub.client.PlatformConnectionManager;
 import io.axoniq.axonhub.client.util.ContextAddingInterceptor;
 import io.axoniq.axonhub.client.util.ExceptionSerializer;
 import io.axoniq.axonhub.client.util.FlowControllingStreamObserver;
+import io.axoniq.axonhub.client.util.ResubscribableStreamObserver;
 import io.axoniq.axonhub.client.util.TokenAddingInterceptor;
 import io.axoniq.axonhub.grpc.CommandProviderInbound;
 import io.axoniq.axonhub.grpc.CommandProviderOutbound;
@@ -295,18 +296,24 @@ public class AxonHubCommandBus implements CommandBus {
 
                     @Override
                     public void onError(Throwable throwable) {
-                        logger.warn("Received error from server: {}", throwable.getMessage());
+                        logger.warn("Command Inbound Stream produced an error.", throwable);
                         subscriberStreamObserver = null;
                     }
 
                     @Override
                     public void onCompleted() {
-                        logger.debug("Received completed from server");
+                        logger.info("Command Inbound Stream completed.");
                         subscriberStreamObserver = null;
                     }
                 };
 
-                StreamObserver<CommandProviderOutbound> stream = platformConnectionManager.getCommandStream(commandsFromRoutingServer, interceptors);
+                ResubscribableStreamObserver<CommandProviderInbound> resubscribableCommandFromRoutingServerStreamObserver = new ResubscribableStreamObserver<>(
+                        commandsFromRoutingServer,
+                        t -> resubscribe());
+
+                StreamObserver<CommandProviderOutbound> stream = platformConnectionManager.getCommandStream(
+                        resubscribableCommandFromRoutingServerStreamObserver,
+                        interceptors);
                 subscriberStreamObserver = new FlowControllingStreamObserver<>(stream,
                         configuration,
                         flowControl -> CommandProviderOutbound.newBuilder().setFlowControl(flowControl).build(),
