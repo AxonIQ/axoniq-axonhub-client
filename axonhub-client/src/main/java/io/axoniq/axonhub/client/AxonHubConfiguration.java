@@ -108,7 +108,7 @@ public class AxonHubConfiguration {
     /**
      * Interval (in ms) for keep alive requests, 0 is keep-alive disabled
      */
-    private long keepAliveTime = 0;
+    private long keepAliveTime = 1000;
     /**
      * Interval at which the server is requested to send a heartbeat on open event streams, when no
      * events are sent.

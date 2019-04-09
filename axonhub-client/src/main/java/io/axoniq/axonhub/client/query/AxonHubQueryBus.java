@@ -27,6 +27,7 @@ import io.axoniq.axonhub.client.command.AxonHubRegistration;
 import io.axoniq.axonhub.client.util.ContextAddingInterceptor;
 import io.axoniq.axonhub.client.util.ExceptionSerializer;
 import io.axoniq.axonhub.client.util.FlowControllingStreamObserver;
+import io.axoniq.axonhub.client.util.ResubscribableStreamObserver;
 import io.axoniq.axonhub.client.util.TokenAddingInterceptor;
 import io.axoniq.axonhub.grpc.QueryComplete;
 import io.axoniq.axonhub.grpc.QueryProviderInbound;
@@ -67,6 +68,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -285,8 +288,8 @@ public class AxonHubQueryBus implements QueryBus {
                 outboundStreamObserver.onNext(QueryProviderOutbound.newBuilder().setQueryComplete(
                         QueryComplete.newBuilder().setMessageId(UUID.randomUUID().toString()).setRequestId(requestId)).build());
             } catch (Exception ex) {
+                logger.warn("An error occurred while processing a query {}.", query.getQuery(), ex);
                 if( outboundStreamObserver != null) {
-                    logger.warn("Received error from localSegment: {}", ex.getMessage(), ex);
                     outboundStreamObserver.onNext(QueryProviderOutbound.newBuilder()
                                                                        .setQueryResponse(QueryResponse.newBuilder()
                                                                                                       .setMessageIdentifier(
@@ -356,16 +359,24 @@ public class AxonHubQueryBus implements QueryBus {
 
                     @Override
                     public void onError(Throwable throwable) {
+                        logger.warn("Query Inbound Stream produced an error.", throwable);
                         outboundStreamObserver = null;
                     }
 
                     @Override
                     public void onCompleted() {
+                        logger.info("Query Inbound Stream completed.");
                         outboundStreamObserver = null;
                     }
                 };
 
-                StreamObserver<QueryProviderOutbound> stream = platformConnectionManager.getQueryStream(queryProviderInboundStreamObserver, interceptors);
+                ResubscribableStreamObserver<QueryProviderInbound> resubscribableQueryProviderInboundStreamObserver = new ResubscribableStreamObserver<>(
+                        queryProviderInboundStreamObserver,
+                        t -> resubscribe());
+
+                StreamObserver<QueryProviderOutbound> stream = platformConnectionManager.getQueryStream(
+                        resubscribableQueryProviderInboundStreamObserver,
+                        interceptors);
                 outboundStreamObserver = new FlowControllingStreamObserver<>(stream,
                                                                              configuration,
                                                                              flowControl -> QueryProviderOutbound.newBuilder().setFlowControl(flowControl).build(),
