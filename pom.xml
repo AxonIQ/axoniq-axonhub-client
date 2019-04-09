@@ -63,12 +63,13 @@
             Please note that there are dependencies between the gRPC and Netty TcNative versions.
             gRPC is quite specific about the version of Netty TcNative, so check the dependencies on
             https://mvnrepository.com/artifact/io.grpc/grpc-netty/<grpcVersion>
+            https://github.com/grpc/grpc-java/blob/master/SECURITY.md
 
             - We use (in our default client artifact) a statically-linked version of Netty TcNative. This contains
               native libraries for BoringSSL (Google fork of OpenSSL).
         -->
-        <grpc.version>1.13.1</grpc.version>
-        <netty.tcnative.version>2.0.8.Final</netty.tcnative.version>
+        <grpc.version>1.19.0</grpc.version>
+        <netty.tcnative.version>2.0.20.Final</netty.tcnative.version>
     </properties>
 
     <modules>
